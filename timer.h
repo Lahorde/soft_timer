@@ -1,85 +1,79 @@
 /******************************************************************************
- * @file    timer.h 
+ * @file    timer.h
  * @author  Rémi Pincent - INRIA
- * @date    27 juin 2014   
+ * @date    01/03/2018
  *
- * @brief simple timer
- * 
- * Project : ContainerNode
+ * @brief Simple 32bits software timer with a max of 1ms resolution (depending on
+ * tick feeding timer).
+ *
+ * Project : soft_timer
  * Contact:  Rémi Pincent - remi.pincent@inria.fr
- * 
+ *
  * Revision History:
- * TODO_revision history
+ * Insert github reference
+ *
+ * LICENSE :
+ * soft_timer (c) by Rémi Pincent
+ * soft_timer is licensed under a
+ * Creative Commons Attribution-NonCommercial 3.0 Unported License.
+ *
+ * You should have received a copy of the license along with this
+ * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
  *****************************************************************************/
+#ifndef TIMER_H
+#define TIMER_H
 
-#ifndef TIMER_H_
-#define TIMER_H_
-
-/**
- * @class Timer
- * @brief simple timer notifying its listener when it elapses
- * EVENTS : must have been defined in events.h
- *   _EMITTED EVENTS :
- *   _SUBSCRIBED EVENTS :
- */
-#include "timer_listener.h"
-extern "C"{
-	#include "app_timer.h"
-}
-#include <EventListener.h>
-#include <stdint.h>
-
-class Timer
+#ifdef __cplusplus
+extern "C"
 {
-private :
-	TimerListener* _p_timerListener;
-	app_timer_id_t _timerId;
-	bool _b_periodicTimer;
-	bool _isActive;
+#endif
+/**************************************************************************
+ * Include Files
+ **************************************************************************/
+#include <stdint.h>
+#include <stdbool.h>
 
-public:
-	Timer(TimerListener* arg_p_timer_listener);
-	~Timer();
+/**************************************************************************
+ * Manifest Constants
+ **************************************************************************/
 
-	/**
-	 * Notify listener after given duration
-	 * @param arg_u32_ms duration in ms
-	 */
-	void notifyAfter(uint32_t arg_u32_ms);
+/**************************************************************************
+ * Type Definitions
+ **************************************************************************/
+typedef void (*TTimerCb)(void*);
 
-	/**
-	 * Notifies its listener all arg_u16_ms ms
-	 * @param arg_u32_ms duration in ms
-	 */
-	void periodicNotify(uint32_t arg_u32_ms);
+typedef struct
+{
+	uint32_t _u32_count;
+	uint32_t _u32_period;
+	TTimerCb _pfn_cb;
+	void* _p_cbParam;
+}TsTimer;
 
-	/**
-	 * Returns true if timer still counting
-	 * @return
-	 */
-	bool isActive(void);
+/**************************************************************************
+ * Global variables
+ **************************************************************************/
 
-	/**
-	 * cancel on going timer
-	 */
-	void cancel(void);
-private :
+/**************************************************************************
+ * Macros
+ **************************************************************************/
 
-	/**
-	 * Initialize timer
-	 */
-	void init(void);
+/**************************************************************************
+ * Global Functions Declarations
+ **************************************************************************/
+void Timer_init(TsTimer*);
 
-	/**
-	 * start timer
-	 */
-	void start(uint32_t arg_u32_ms);
+void Timer_notifyAfter(TsTimer*, uint32_t arg_u32_ms, void* arg_p_cbParam);
 
-	/**
-	 * Timer elapsed - timer instance given as parameter
-	 * @param eventCode
-	 */
-	static void timerElapsed(Timer * arg_p_timer);
-};
+void Timer_periodicNotify(TsTimer*, uint32_t arg_u32_ms, void* arg_p_cbParam);
 
-#endif /* TIMER_H_ */
+void Timer_cancel(TsTimer*);
+
+bool Timer_isActive(TsTimer*);
+
+void Timer_tick(TsTimer*, uint32_t arg_u32_ms);
+
+#ifdef __cplusplus
+}
+#endif
+#endif /* TIMER_H */
